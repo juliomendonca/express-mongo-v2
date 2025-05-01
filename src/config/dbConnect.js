@@ -1,7 +1,11 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
+async function connectDb() {
+    const URI = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.MONGODB_APP}`
 
-let db = mongoose.connection;
+    mongoose.connect(URI);
 
-export default db;
+    return mongoose.connection;
+}
+
+export default connectDb;

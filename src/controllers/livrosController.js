@@ -1,83 +1,77 @@
-import livros from "../models/Livro.js";
+import livro from "../models/Livro.js";
+import { autor } from "../models/Autor.js";
 
-class LivroController {
+class LivrosController {
 
-  static listarLivros = async (req, res) => {
-    try {
-      const livrosResultado = await livros.find()
-        .populate("autor")
-        .exec();
-
-      res.status(200).json(livrosResultado);
-    } catch (erro) {
-      res.status(500).json({ message: "Erro interno no servidor" });
-    }
-  }
-
-  static listarLivroPorId = async (req, res) => {
+  static async atualizarLivro(req, res) {
     try {
       const id = req.params.id;
-
-      const livroResultados = await livros.findById(id)
-        .populate("autor", "nome")
-        .exec();
-
-      res.status(200).send(livroResultados);
+      await livro.findByIdAndUpdate(id, req.body);
+      res.status(200).json({ message: "livro atualizado" });
     } catch (erro) {
-      res.status(400).send({message: `${erro.message} - Id do livro não localizado.`});
+      res.status(500).json({ message: `${erro.message} - falha na atualização` });
     }
-  }
+  };
 
-  static cadastrarLivro = async (req, res) => {
+  static async cadastrarLivro(req, res) {
+    const novoLivro = req.body;
+
     try {
-      let livro = new livros(req.body);
+      const autorEncontrado = await autor.findById(novoLivro.autor);
 
-      const livroResultado = await livro.save();
+      if (!autorEncontrado) {
+        return res.status(404).json({ message: "Autor não encontrado" });
+      }
 
-      res.status(201).send(livroResultado.toJSON());
+      const livroCompleto = { ...novoLivro, autor: { ...autorEncontrado._doc } };
+
+      const livroCriado = await livro.create(livroCompleto);
+
+      res.status(201).json({ message: "criado com sucesso", livro: livroCriado });
     } catch (erro) {
-      res.status(500).send({message: `${erro.message} - falha ao cadastrar livro.`});
+      res.status(500).json({ message: `${erro.message} - falha ao cadastrar livro` });
     }
   }
 
-  static atualizarLivro = async (req, res) => {
-    try {
-      const id = req.params.id;
-
-      await livros.findByIdAndUpdate(id, {$set: req.body});
-
-      res.status(200).send({message: "Livro atualizado com sucesso"});
-    } catch (erro) {
-      res.status(500).send({message: erro.message});
-    }
-  }
-
-  static excluirLivro = async (req, res) => {
+  static async excluirLivro(req, res) {
     try {
       const id = req.params.id;
-
-      await livros.findByIdAndDelete(id);
-
-      res.status(200).send({message: "Livro removido com sucesso"});
+      await livro.findByIdAndDelete(id);
+      res.status(200).json({ message: "livro excluído com sucesso" });
     } catch (erro) {
-      res.status(500).send({message: erro.message});
+      res.status(500).json({ message: `${erro.message} - falha na exclusão` });
     }
-  }
+  };
 
-  static listarLivroPorEditora = async (req, res) => {
+  static async listarLivros(req, res) {
     try {
-      const editora = req.query.editora;
-
-      const livrosResultado = await livros.find({"editora": editora});
-
-      res.status(200).send(livrosResultado);
+      const listaLivros = await livro.find({});
+      res.status(200).json(listaLivros);
     } catch (erro) {
-      res.status(500).json({ message: "Erro interno no servidor" });
+      res.status(500).json({ message: `${erro.message} - falha na requisição` });
+    }
+  };
+
+  static async listarLivroPorId(req, res) {
+    try {
+      const id = req.params.id;
+      const livroEncontrado = await livro.findById(id);
+      res.status(200).json(livroEncontrado);
+    } catch (erro) {
+      res.status(500).json({ message: `${erro.message} - falha na requisição do livro` });
+    }
+  };
+
+  static async listarLivrosPorEditora(req, res) {
+    const editora = req.query.editora;
+    try {
+      const livrosPorEditora = await livro.find({ editora: editora });
+      res.status(200).json(livrosPorEditora);
+    } catch (erro) {
+      res.status(500).json({ message: `${erro.message} - falha na busca` });
     }
   }
 
+};
 
-
-}
-
-export default LivroController
+export default LivrosController;
