@@ -1,5 +1,6 @@
 // Libs
 import express from 'express';
+import manipuladorDeErros from './middleware/manipuladorDeErros.js';
 
 // Local
 import connectDB from './config/dbConnect.js';
@@ -17,5 +18,8 @@ conexao.once("open", () => {
 
 const app = express();
 routes(app);
+
+// Middlewares
+app.use(manipuladorDeErros);
 
 export default app;
