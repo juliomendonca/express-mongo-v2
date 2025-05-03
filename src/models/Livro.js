@@ -9,10 +9,19 @@ const livroSchema = new mongoose.Schema({
   },
   editora: {
     type: String,
-    required: [true, "A editora é obrigatória"]
+    required: [true, "A editora é obrigatória"],
+    enum: {
+      values: ["Saraiva", "Companhia das Letras", "Record", "Rocco"],
+      message: "{VALUE} não é uma editora válida"
+    }
   },
   preco: { type: mongoose.Schema.Types.Double, required: true },
-  paginas: { type: mongoose.Schema.Types.Int32, required: true },
+  paginas: {
+    type: mongoose.Schema.Types.Int32,
+    required: true,
+    min: [10, "O número mínimo de páginas é 10"],
+    max: [10000, "O número máximo de páginas é 10000"]
+  },
   autor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "autores",
